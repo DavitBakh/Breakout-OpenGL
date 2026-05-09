@@ -6,6 +6,7 @@
     <ClInclude Include="include\texture.h" />
     <ClInclude Include="include\resource_manager.h" />
     <ClInclude Include="include\stb_image.h" />
+    <ClInclude Include="include\sprite_renderer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
@@ -15,5 +16,6 @@
     <ClCompile Include="src\texture.cpp" />
     <ClCompile Include="src\resource_manager.cpp" />
     <ClCompile Include="src\stb_image.cpp" />
+    <ClCompile Include="src\sprite_renderer.cpp" />
   </ItemGroup>
 </Project>
