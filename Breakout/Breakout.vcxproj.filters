@@ -7,6 +7,10 @@
     <ClInclude Include="include\resource_manager.h" />
     <ClInclude Include="include\stb_image.h" />
     <ClInclude Include="include\sprite_renderer.h" />
+    <ClInclude Include="include\game_object.h" />
+    <ClInclude Include="include\game_level.h" />
+    <ClInclude Include="include\ball_object.h" />
+    <ClInclude Include="include\particle_generator.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
@@ -17,5 +21,27 @@
     <ClCompile Include="src\resource_manager.cpp" />
     <ClCompile Include="src\stb_image.cpp" />
     <ClCompile Include="src\sprite_renderer.cpp" />
+    <ClCompile Include="src\game_object.cpp" />
+    <ClCompile Include="src\game_level.cpp" />
+    <ClCompile Include="src\ball_object.cpp" />
+    <ClCompile Include="src\particle_generator.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="textures\awesomeface.png" />
+    <Image Include="textures\block.png" />
+    <Image Include="textures\block_solid.png" />
+    <Image Include="textures\background.jpg" />
+    <Image Include="textures\paddle.png" />
+    <Image Include="textures\ball.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\sprite.frag" />
+    <None Include="shaders\sprite.vs" />
+    <None Include="levels\1.lvl" />
+    <None Include="levels\2.lvl" />
+    <None Include="levels\3.lvl" />
+    <None Include="levels\4.lvl" />
+    <None Include="shaders\particle.vs" />
+    <None Include="shaders\particle.frag" />
   </ItemGroup>
 </Project>
