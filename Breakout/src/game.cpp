@@ -1,3 +1,5 @@
+#include <sstream>
+
 #include "game.h"
 #include "resource_manager.h"
 #include "sprite_renderer.h"
@@ -11,14 +13,14 @@ using namespace irrklang;
 ISoundEngine* SoundEngine = createIrrKlangDevice();
 
 // Game-related State data
-SpriteRenderer*		Renderer;
-GameObject*			Player;
-BallObject*			Ball;
-ParticleGenerator*	Particles;
-TextRenderer*		Text;
+SpriteRenderer* Renderer;
+GameObject* Player;
+BallObject* Ball;
+ParticleGenerator* Particles;
+TextRenderer* Text;
 
 Game::Game(unsigned int width, unsigned int height)
-	: State(GAME_ACTIVE), Keys(), Width(width), Height(height)
+	: State(GAME_MENU), Keys(), Width(width), Height(height)
 {
 
 }
@@ -78,6 +80,8 @@ void Game::Init()
 	this->Levels.push_back(four);
 	this->Level = 0;
 
+	this->Lives = 3;
+
 	// configure game objects
 
 	//Player
@@ -109,13 +113,50 @@ void Game::Update(float dt)
 	// check loss condition
 	if (Ball->Position.y >= this->Height)
 	{
+		--this->Lives;
+
+		if (this->Lives == 0)
+		{
+			this->ResetLevel();
+			this->State = GAME_MENU;
+		}
+
+		this->ResetPlayer();
+	}
+
+	if (this->State == GAME_ACTIVE && this->Levels[this->Level].IsCompleted())
+	{
 		this->ResetLevel();
 		this->ResetPlayer();
+		/*Effects->Chaos = true;*/
+		this->State = GAME_WIN;
 	}
 }
 
 void Game::ProcessInput(float dt)
 {
+	if (this->State == GAME_MENU)
+	{
+		if (this->Keys[GLFW_KEY_ENTER] && !this->KeysProcessed[GLFW_KEY_ENTER])
+		{
+			this->State = GAME_ACTIVE;
+			this->KeysProcessed[GLFW_KEY_ENTER] = true;
+		}
+		if (this->Keys[GLFW_KEY_D] && !this->KeysProcessed[GLFW_KEY_D])
+		{
+			this->Level = (this->Level + 1) % 4;
+			this->KeysProcessed[GLFW_KEY_D] = true;
+		}
+		if (this->Keys[GLFW_KEY_A] && !this->KeysProcessed[GLFW_KEY_A])
+		{
+			if (this->Level > 0)
+				--this->Level;
+			else
+				this->Level = 3;
+			this->KeysProcessed[GLFW_KEY_A] = true;
+		}
+	}
+
 	if (this->State == GAME_ACTIVE)
 	{
 		float velocity = PLAYER_VELOCITY * dt;
@@ -141,11 +182,21 @@ void Game::ProcessInput(float dt)
 		if (this->Keys[GLFW_KEY_SPACE])
 			Ball->Stuck = false;
 	}
+
+	if (this->State == GAME_WIN)
+	{
+		if (this->Keys[GLFW_KEY_ENTER])
+		{
+			this->KeysProcessed[GLFW_KEY_ENTER] = true;
+			//Effects->Chaos = false;
+			this->State = GAME_MENU;
+		}
+	}
 }
 
 void Game::Render()
 {
-	if (this->State == GAME_ACTIVE)
+	if (this->State == GAME_ACTIVE || this->State == GAME_MENU)
 	{
 		// draw background
 		Renderer->DrawSprite(ResourceManager::GetTexture("background"), glm::vec2(0.0f, 0.0f), glm::vec2(this->Width, this->Height), 0.0f);
@@ -166,6 +217,26 @@ void Game::Render()
 
 		// draw ball
 		Ball->Draw(*Renderer);
+
+		std::stringstream ss; ss << this->Lives;
+		Text->RenderText("Lives:" + ss.str(), 5.0f, 5.0f, 1.0f);
+	}
+
+	if (this->State == GAME_MENU)
+	{
+		Text->RenderText("Press ENTER to start", 250.0f, Height / 2, 1.0f);
+		Text->RenderText("Press A or D to select level", 245.0f, Height / 2 + 20.0f, 0.75f);
+	}
+
+	if (this->State == GAME_WIN)
+	{
+		Text->RenderText(
+			"You WON!!!", 320.0, Height / 2 - 20.0, 1.0, glm::vec3(0.0, 1.0, 0.0)
+		);
+
+		Text->RenderText(
+			"Press ENTER to retry or ESC to quit", 130.0, Height / 2, 1.0, glm::vec3(1.0, 1.0, 0.0)
+		);
 	}
 }
 
@@ -187,6 +258,8 @@ void Game::ResetLevel()
 		this->Levels[3].Load("levels/4.lvl", this->Width, this->Height / 2);
 		break;
 	}
+
+	this->Lives = 3;
 }
 
 void Game::ResetPlayer()
