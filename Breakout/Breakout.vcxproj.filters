@@ -11,6 +11,7 @@
     <ClInclude Include="include\game_level.h" />
     <ClInclude Include="include\ball_object.h" />
     <ClInclude Include="include\particle_generator.h" />
+    <ClInclude Include="include\power_up.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />

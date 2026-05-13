@@ -24,6 +24,7 @@
     <ClInclude Include="include\game_level.h" />
     <ClInclude Include="include\game_object.h" />
     <ClInclude Include="include\particle_generator.h" />
+    <ClInclude Include="include\power_up.h" />
     <ClInclude Include="include\resource_manager.h" />
     <ClInclude Include="include\shader.h" />
     <ClInclude Include="include\sprite_renderer.h" />
