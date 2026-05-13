@@ -226,6 +226,9 @@ void Game::Render()
 	{
 		Text->RenderText("Press ENTER to start", 250.0f, Height / 2, 1.0f);
 		Text->RenderText("Press A or D to select level", 245.0f, Height / 2 + 20.0f, 0.75f);
+
+		std::string levelStr = "Level " + std::to_string(this->Level + 1);
+		Text->RenderText(levelStr, Width / 2 - 20, Height / 2 + 40, 0.75f);
 	}
 
 	if (this->State == GAME_WIN)
