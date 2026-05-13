@@ -5,6 +5,10 @@
 #include "ball_object.h"
 #include "particle_generator.h"
 
+#include <irrKlang.h>
+using namespace irrklang;
+ISoundEngine* SoundEngine = createIrrKlangDevice();
+
 // Game-related State data
 SpriteRenderer* Renderer;
 GameObject* Player;
@@ -83,6 +87,8 @@ void Game::Init()
 
 	//Particles
 	Particles = new ParticleGenerator(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("particle"), 1500);
+
+	SoundEngine->play2D("audio/breakout.mp3", true);
 }
 
 void Game::Update(float dt)
@@ -181,6 +187,7 @@ void Game::ResetPlayer()
 {
 	Player->Size = PLAYER_SIZE;
 	Player->Position = glm::vec2(this->Width / 2.0f - PLAYER_SIZE.x / 2.0f, this->Height - PLAYER_SIZE.y);
+	Player->Color = glm::vec3(1.0f);
 
 	Ball->Reset(Player->Position + glm::vec2(PLAYER_SIZE.x / 2.0f - BALL_RADIUS, -(BALL_RADIUS * 2.0f)), INITIAL_BALL_VELOCITY);
 }
