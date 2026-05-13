@@ -36,12 +36,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\sprite.frag" />
-    <None Include="shaders\sprite.vs" />
+    <None Include="shaders\sprite.vert" />
     <None Include="levels\1.lvl" />
     <None Include="levels\2.lvl" />
     <None Include="levels\3.lvl" />
     <None Include="levels\4.lvl" />
-    <None Include="shaders\particle.vs" />
+    <None Include="shaders\particle.vert" />
     <None Include="shaders\particle.frag" />
   </ItemGroup>
 </Project>

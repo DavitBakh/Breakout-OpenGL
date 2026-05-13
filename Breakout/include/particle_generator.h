@@ -10,7 +10,8 @@
 #include "game_object.h"
 
 
-struct Particle {
+struct Particle 
+{
     glm::vec2 Position, Velocity;
     glm::vec4 Color;
     float     Life;
