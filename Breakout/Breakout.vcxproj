@@ -30,6 +30,7 @@
     <ClInclude Include="include\sprite_renderer.h" />
     <ClInclude Include="include\stb_image.h" />
     <ClInclude Include="include\texture.h" />
+    <ClInclude Include="include\text_renderer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\ball_object.cpp" />
@@ -44,6 +45,7 @@
     <ClCompile Include="src\sprite_renderer.cpp" />
     <ClCompile Include="src\stb_image.cpp" />
     <ClCompile Include="src\texture.cpp" />
+    <ClCompile Include="src\text_renderer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="textures\awesomeface.png" />
@@ -62,6 +64,8 @@
     <None Include="shaders\particle.vert" />
     <None Include="shaders\sprite.frag" />
     <None Include="shaders\sprite.vert" />
+    <None Include="shaders\text_2d.frag" />
+    <None Include="shaders\text_2d.vert" />
   </ItemGroup>
   <ItemGroup>
     <Media Include="audio\breakout.mp3" />
@@ -153,7 +157,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)include;E:\Cragravorum\OpenGL\GLAD\include;E:\Cragravorum\OpenGL\GLFW\include;E:\Cragravorum\OpenGL\glm;E:\Cragravorum\irrKlang\include;E:\Cragravorum\FreeType\freetype-2.14.3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)include;E:\Cragravorum\OpenGL\GLAD\include;E:\Cragravorum\OpenGL\GLFW\include;E:\Cragravorum\OpenGL\glm;E:\Cragravorum\irrKlang\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

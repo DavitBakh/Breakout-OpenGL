@@ -4,16 +4,18 @@
 #include "game_object.h"
 #include "ball_object.h"
 #include "particle_generator.h"
+#include "text_renderer.h"
 
 #include <irrKlang.h>
 using namespace irrklang;
 ISoundEngine* SoundEngine = createIrrKlangDevice();
 
 // Game-related State data
-SpriteRenderer* Renderer;
-GameObject* Player;
-BallObject* Ball;
-ParticleGenerator* Particles;
+SpriteRenderer*		Renderer;
+GameObject*			Player;
+BallObject*			Ball;
+ParticleGenerator*	Particles;
+TextRenderer*		Text;
 
 Game::Game(unsigned int width, unsigned int height)
 	: State(GAME_ACTIVE), Keys(), Width(width), Height(height)
@@ -90,6 +92,9 @@ void Game::Init()
 	Particles = new ParticleGenerator(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("particle"), 1500);
 
 	SoundEngine->play2D("audio/breakout.mp3", true);
+
+	Text = new TextRenderer(this->Width, this->Height);
+	Text->Load("fonts/ocraext.TTF", 24);
 }
 
 void Game::Update(float dt)
