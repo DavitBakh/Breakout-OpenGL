@@ -27,6 +27,7 @@ Game::~Game()
 	delete Player;
 	delete Ball;
 	delete Particles;
+	SoundEngine->drop();
 }
 
 void Game::Init()
@@ -334,6 +335,12 @@ void Game::DoCollisions()
 				{
 					box.Destroyed = true;
 					this->SpawnPowerUps(box);
+
+					SoundEngine->play2D("audio/bleep.mp3", false);
+				}
+				else
+				{
+					SoundEngine->play2D("audio/solid.wav", false);
 				}
 
 				// collision resolution
@@ -384,6 +391,8 @@ void Game::DoCollisions()
 		Ball->Velocity.y = -1.0f * abs(Ball->Velocity.y);
 
 		Ball->Stuck = Ball->Sticky;
+
+		SoundEngine->play2D("audio/bleep.wav", false);
 	}
 
 	for (PowerUp& powerUp : this->PowerUps)
@@ -398,6 +407,8 @@ void Game::DoCollisions()
 				ActivatePowerUp(powerUp);
 				powerUp.Destroyed = true;
 				powerUp.Activated = true;
+
+				SoundEngine->play2D("audio/powerup.wav", false);
 			}
 		}
 	}
