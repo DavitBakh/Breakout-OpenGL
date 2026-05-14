@@ -7,6 +7,7 @@
 #include "ball_object.h"
 #include "particle_generator.h"
 #include "text_renderer.h"
+#include "post_processor.h"
 
 #include <irrKlang.h>
 using namespace irrklang;
@@ -18,6 +19,9 @@ GameObject* Player;
 BallObject* Ball;
 ParticleGenerator* Particles;
 TextRenderer* Text;
+PostProcessor* Effects;
+
+float ShakeTime = 0.0f;
 
 Game::Game(unsigned int width, unsigned int height)
 	: State(GAME_MENU), Keys(), Width(width), Height(height)
@@ -39,6 +43,7 @@ void Game::Init()
 	// load shaders
 	ResourceManager::LoadShader("shaders/sprite.vert", "shaders/sprite.frag", nullptr, "sprite");
 	ResourceManager::LoadShader("shaders/particle.vert", "shaders/particle.frag", nullptr, "particle");
+	ResourceManager::LoadShader("shaders/post_processing.vert", "shaders/post_processing.frag", nullptr, "postprocessing");
 
 	// configure shaders
 	glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(this->Width),
@@ -66,8 +71,9 @@ void Game::Init()
 	ResourceManager::LoadTexture("textures/powerup_passthrough.png", true, "powerup_passthrough");
 
 
-	// set render-specific controls
 	Renderer = new SpriteRenderer(ResourceManager::GetShader("sprite"));
+	Particles = new ParticleGenerator(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("particle"), 1500);
+	Effects = new PostProcessor(ResourceManager::GetShader("postprocessing"), this->Width, this->Height);
 
 	// load levels
 	GameLevel one; one.Load("levels/1.lvl", this->Width, this->Height / 2);
@@ -92,9 +98,6 @@ void Game::Init()
 	glm::vec2 ballPos = playerPos + glm::vec2(PLAYER_SIZE.x / 2.0f - BALL_RADIUS, -BALL_RADIUS * 2.0f);
 	Ball = new BallObject(ballPos, BALL_RADIUS, INITIAL_BALL_VELOCITY, ResourceManager::GetTexture("ball"));
 
-	//Particles
-	Particles = new ParticleGenerator(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("particle"), 1500);
-
 	SoundEngine->play2D("audio/breakout.mp3", true);
 
 	Text = new TextRenderer(this->Width, this->Height);
@@ -109,6 +112,13 @@ void Game::Update(float dt)
 	Particles->Update(dt, *Ball, 2, glm::vec2(Ball->Radius / 2.0f));
 
 	this->UpdatePowerUps(dt);
+
+	if (ShakeTime > 0.0f)
+	{
+		ShakeTime -= dt;
+		if (ShakeTime <= 0.0f)
+			Effects->Shake = false;
+	}
 
 	// check loss condition
 	if (Ball->Position.y >= this->Height)
@@ -128,7 +138,7 @@ void Game::Update(float dt)
 	{
 		this->ResetLevel();
 		this->ResetPlayer();
-		/*Effects->Chaos = true;*/
+		Effects->Chaos = true;
 		this->State = GAME_WIN;
 	}
 }
@@ -188,7 +198,7 @@ void Game::ProcessInput(float dt)
 		if (this->Keys[GLFW_KEY_ENTER])
 		{
 			this->KeysProcessed[GLFW_KEY_ENTER] = true;
-			//Effects->Chaos = false;
+			Effects->Chaos = false;
 			this->State = GAME_MENU;
 		}
 	}
@@ -198,6 +208,8 @@ void Game::Render()
 {
 	if (this->State == GAME_ACTIVE || this->State == GAME_MENU)
 	{
+		Effects->BeginRender();
+
 		// draw background
 		Renderer->DrawSprite(ResourceManager::GetTexture("background"), glm::vec2(0.0f, 0.0f), glm::vec2(this->Width, this->Height), 0.0f);
 
@@ -217,6 +229,9 @@ void Game::Render()
 
 		// draw ball
 		Ball->Draw(*Renderer);
+
+		Effects->EndRender();
+		Effects->Render(glfwGetTime());
 
 		std::stringstream ss; ss << this->Lives;
 		Text->RenderText("Lives:" + ss.str(), 5.0f, 5.0f, 1.0f);
@@ -283,8 +298,8 @@ bool ShouldSpawn(unsigned int chance)
 
 void Game::SpawnPowerUps(GameObject& block)
 {
-	unsigned int positiveChance = 75; // 1 in 75 chance
-	unsigned int negativeChance = 15; // 1 in 75 chance
+	unsigned int positiveChance = 10; // 1 in 75 chance
+	unsigned int negativeChance = 25; // 1 in 25 chance
 
 	//Positive
 	if (ShouldSpawn(positiveChance))
@@ -345,17 +360,13 @@ void Game::UpdatePowerUps(float dt)
 				}
 				else if (powerUp.Type == "confuse")
 				{
-					//if (!isOtherPowerUpActive(this->PowerUps, "confuse"))
-					//{	// only reset if no other PowerUp of type confuse is active
-					//	Effects->Confuse = false;
-					//}
+					if (!IsOtherPowerUpActive(this->PowerUps, "confuse"))
+						Effects->Confuse = false;
 				}
 				else if (powerUp.Type == "chaos")
 				{
-					//if (!isOtherPowerUpActive(this->PowerUps, "chaos"))
-					//{	// only reset if no other PowerUp of type chaos is active
-					//	Effects->Chaos = false;
-					//}
+					if (!IsOtherPowerUpActive(this->PowerUps, "chaos"))
+						Effects->Chaos = false;
 				}
 			}
 		}
@@ -392,13 +403,13 @@ void ActivatePowerUp(PowerUp& powerUp)
 	}
 	else if (powerUp.Type == "confuse")
 	{
-		//if (!Effects->Chaos)
-		//	Effects->Confuse = true; // only activate if chaos wasn't already active
+		if (!Effects->Chaos)
+			Effects->Confuse = true;
 	}
 	else if (powerUp.Type == "chaos")
 	{
-		/*if (!Effects->Confuse)
-			Effects->Chaos = true;*/
+		if (!Effects->Confuse)
+			Effects->Chaos = true;
 	}
 }
 
@@ -421,6 +432,8 @@ void Game::DoCollisions()
 				}
 				else
 				{
+					ShakeTime = 0.05f;
+					Effects->Shake = true;
 					SoundEngine->play2D("audio/solid.wav", false);
 				}
 
