@@ -1,4 +1,5 @@
 #include <sstream>
+#include <filesystem>
 
 #include "game.h"
 #include "resource_manager.h"
@@ -13,7 +14,6 @@
 using namespace irrklang;
 ISoundEngine* SoundEngine = createIrrKlangDevice();
 
-// Game-related State data
 SpriteRenderer* Renderer;
 GameObject* Player;
 BallObject* Ball;
@@ -35,6 +35,7 @@ Game::~Game()
 	delete Player;
 	delete Ball;
 	delete Particles;
+	delete Effects;
 	SoundEngine->drop();
 }
 
@@ -76,16 +77,17 @@ void Game::Init()
 	Effects = new PostProcessor(ResourceManager::GetShader("postprocessing"), this->Width, this->Height);
 
 	// load levels
-	GameLevel one; one.Load("levels/1.lvl", this->Width, this->Height / 2);
-	GameLevel two; two.Load("levels/2.lvl", this->Width, this->Height / 2);
-	GameLevel three; three.Load("levels/3.lvl", this->Width, this->Height / 2);
-	GameLevel four; four.Load("levels/4.lvl", this->Width, this->Height / 2);
-	this->Levels.push_back(one);
-	this->Levels.push_back(two);
-	this->Levels.push_back(three);
-	this->Levels.push_back(four);
-	this->Level = 0;
+	for (const auto& entry : std::filesystem::directory_iterator("levels"))
+	{
+		if (entry.path().extension() == ".lvl")
+		{
+			GameLevel level;
+			level.Load(entry.path().string().c_str(), this->Width, this->Height / 3);
+			this->Levels.push_back(level);
+		}
+	}
 
+	this->Level = 0;
 	this->Lives = 3;
 
 	// configure game objects
@@ -154,7 +156,7 @@ void Game::ProcessInput(float dt)
 		}
 		if (this->Keys[GLFW_KEY_D] && !this->KeysProcessed[GLFW_KEY_D])
 		{
-			this->Level = (this->Level + 1) % 4;
+			this->Level = (this->Level + 1) % this->Levels.size();
 			this->KeysProcessed[GLFW_KEY_D] = true;
 		}
 		if (this->Keys[GLFW_KEY_A] && !this->KeysProcessed[GLFW_KEY_A])
@@ -162,7 +164,7 @@ void Game::ProcessInput(float dt)
 			if (this->Level > 0)
 				--this->Level;
 			else
-				this->Level = 3;
+				this->Level = this->Levels.size() - 1;
 			this->KeysProcessed[GLFW_KEY_A] = true;
 		}
 	}
@@ -206,7 +208,7 @@ void Game::ProcessInput(float dt)
 
 void Game::Render()
 {
-	if (this->State == GAME_ACTIVE || this->State == GAME_MENU)
+	if (this->State == GAME_ACTIVE || this->State == GAME_MENU || this->State == GAME_WIN)
 	{
 		Effects->BeginRender();
 
@@ -239,43 +241,25 @@ void Game::Render()
 
 	if (this->State == GAME_MENU)
 	{
-		Text->RenderText("Press ENTER to start", 250.0f, Height / 2, 1.0f);
-		Text->RenderText("Press A or D to select level", 245.0f, Height / 2 + 20.0f, 0.75f);
+		Text->RenderText("Press ENTER to start", Width / 2 - 150, Height / 2, 1.0f);
+		Text->RenderText("Press A or D to select level", Width / 2 - 150, Height / 2 + 20.0f, 0.75f);
 
 		std::string levelStr = "Level " + std::to_string(this->Level + 1);
-		Text->RenderText(levelStr, Width / 2 - 20, Height / 2 + 40, 0.75f);
+		Text->RenderText(levelStr, Width / 2 - 50, Height / 2 + 40, 0.75f);
 	}
 
 	if (this->State == GAME_WIN)
 	{
-		Text->RenderText(
-			"You WON!!!", 320.0, Height / 2 - 20.0, 1.0, glm::vec3(0.0, 1.0, 0.0)
-		);
-
-		Text->RenderText(
-			"Press ENTER to retry or ESC to quit", 130.0, Height / 2, 1.0, glm::vec3(1.0, 1.0, 0.0)
-		);
+		Text->RenderText("You WON!!!", Width / 2 - 50, Height / 2 - 20.0, 1.0, glm::vec3(0.0, 1.0, 0.0));
+		Text->RenderText("Press ENTER to retry or ESC to quit", 30, Height / 2, 1.0, glm::vec3(1.0, 1.0, 0.0));
 	}
 }
 
 
 void Game::ResetLevel()
 {
-	switch (this->Level)
-	{
-	case 0:
-		this->Levels[0].Load("levels/1.lvl", this->Width, this->Height / 2);
-		break;
-	case 1:
-		this->Levels[1].Load("levels/2.lvl", this->Width, this->Height / 2);
-		break;
-	case 2:
-		this->Levels[2].Load("levels/3.lvl", this->Width, this->Height / 2);
-		break;
-	case 3:
-		this->Levels[3].Load("levels/4.lvl", this->Width, this->Height / 2);
-		break;
-	}
+	std::string levelPath = "levels/" + std::to_string(this->Level + 1) + ".lvl";
+	this->Levels[this->Level].Load(levelPath.c_str(), this->Width, this->Height / 2);
 
 	this->Lives = 3;
 }
@@ -298,7 +282,7 @@ bool ShouldSpawn(unsigned int chance)
 
 void Game::SpawnPowerUps(GameObject& block)
 {
-	unsigned int positiveChance = 10; // 1 in 75 chance
+	unsigned int positiveChance = 75; // 1 in 75 chance
 	unsigned int negativeChance = 25; // 1 in 25 chance
 
 	//Positive
